@@ -1,14 +1,21 @@
 services:
     backend:
-        build: .
+        build:
+            context: .
+            dockerfile: Dockerfile
         container_name: chat_backend
         restart: always
         ports:
             - "3000:3000"
         depends_on:
             - redis
-        volumes:
-            - .:/app
+        environment:
+            - PORT=3000
+            - JWT_SECRET=secret
+            - JWT_EXPIRES_IN=7d
+            - MONGO_URI=mongodb+srv://infohzelnat:bLRD8e9rflZNSMO5@cluster0.hkynxqi.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+            - REDIS_HOST=redis
+            - REDIS_PORT=6379
     redis:
         image: redis:8-alpine
         container_name: chat_redis
