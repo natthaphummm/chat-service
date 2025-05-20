@@ -1,0 +1,39 @@
+name: Deploy to AWS EC2
+
+on:
+    push:
+        branches: [main]
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout Repo
+              uses: actions/checkout@v4
+
+            - name: Set up SSH Key
+              run: |
+                  echo "${{ secrets.AWS_KEY }}" > private_key.pem
+                  chmod 600 private_key.pem
+
+            - name: Create .env file
+              run: |
+                  echo "PORT=${{ secrets.PORT }}" >> .env
+                  echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+                  echo "JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}" >> .env
+                  echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> .env
+                  echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
+                  echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
+
+            - name: Copy files to EC2
+              run: |
+                  scp -i private_key.pem -o StrictHostKeyChecking=no -r . ${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }}:${{ secrets.EC2_PATH }}
+
+            - name: Restart Docker on EC2
+              run: |
+                  ssh -i private_key.pem -o StrictHostKeyChecking=no ${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }} << 'EOF'
+                    cd ${{ secrets.EC2_PATH }}
+                    docker compose down
+                    docker compose up -d --build
+                  EOF
