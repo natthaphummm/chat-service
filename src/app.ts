@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
@@ -11,6 +11,10 @@ const app = express();
 app.use(cors());
 app.use(helmet());
 app.use(express.json());
+
+app.get("/health", (req: Request, res: Response) => {
+    res.send("OK");
+});
 
 app.use("/api/auth", authRoutes);
 app.use("/api/groups", groupRoutes);
