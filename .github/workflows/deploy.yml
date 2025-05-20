@@ -26,6 +26,10 @@ jobs:
                   echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
                   echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
 
+            - name: Remove old folder on EC2
+              run: |
+                  ssh -i private_key.pem -o StrictHostKeyChecking=no ${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }} "sudo rm -rf '${{ secrets.EC2_PATH }}'"
+
             - name: Copy files to EC2
               run: |
                   scp -i private_key.pem -o StrictHostKeyChecking=no -r . ${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }}:${{ secrets.EC2_PATH }}
